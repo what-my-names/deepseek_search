@@ -118,6 +118,22 @@ git -c credential.helper='!f() { echo username=what-my-names; echo password=$(ca
 
 - [x] 源码 / 单测 / 装机 / 真机 均就绪
 - [x] 市场简介 + 详情文案
-- [ ] GitHub 仓库创建 + 推送
-- [ ] Release v0.1.0 + 上传资产
-- [ ] 市场表单提交
+- [x] GitHub 仓库创建 + 推送（2026-10-19 21:56，commit ed4675a）
+- [x] Release v0.1.0 + 上传资产（id 417358293，资产 17689 B）
+- [ ] 市场表单提交（主人在 App 内完成）
+
+### 仓库与资产地址
+
+- 仓库：https://github.com/what-my-names/deepseek_search
+- Release：https://github.com/what-my-names/deepseek_search/releases/tag/v0.1.0
+- 资产：https://github.com/what-my-names/deepseek_search/releases/download/v0.1.0/com.whatmynames.deepseek_search-v0.1.0.toolpkg
+
+### 网络限制（重要）
+
+本机 **`github.com:443` 连不上**（connect 超时），但 **`api.github.com` 和 `uploads.github.com` 都可达**。
+
+所以：
+- 推送/建 Release/传资产都走 API + `/sdcard/x/github/.ghtok`；
+- 本地 `git push` 会卡死，不要试；
+- 本地 git 三条 commit 是开发历史（保留在 `/root/git/deepseek_search`），远端两条 commit 是 API 建的，两边**内容一致、历史不同**；
+- 以后更新文档/代码，要么走 Contents API 逐个文件覆盖，要么等网络能连 github.com 再 `push -f` 对齐。
