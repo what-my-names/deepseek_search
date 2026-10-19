@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "toolpkg_id": "com.whatmynames.deepseek_search",
+  "version": "0.1.0",
+  "author": [
+    "what-my-names"
+  ],
+  "main": "main.js",
+  "name": "deepseek_search",
+  "display_name": {
+    "zh": "DeepSeek 搜索",
+    "en": "DeepSeek Search"
+  },
+  "description": {
+    "zh": "**用 DeepSeek 自研搜索引擎搜网页、抓正文**，不依赖模型自带的 tool call。\n\n### 装完你会得到\n- 两个工具：`deepseek_search`（搜网页，支持 site:/lang:/after: 等算子）、`deepseek_fetch`（把单个页面抓成 Markdown）\n- 工具箱面板：密钥、默认条数、连接测试\n- 结果自带 `authority`（0-4）与 `rerank_score`（0-3），AI 能自己判断可信度\n\n### 为什么不是模型自带联网\nDeepSeek 的 Search / Fetch 是**独立的原始 JSON 接口**，不是 Responses 端点里的 `web_search` 工具。\n本插件直接调 `/v1/tools/search` 与 `/v1/tools/fetch`。\n\n### 副作用与边界\n- **会联网**：向 api.deepseek.com 发 POST\n- **会计费**：按成功请求数计费，$0.75 / 1000 次；失败、空结果、超时不计费\n- 通过 Harness / Claude Code / Codex 走服务端调用时，2026-11-01 00:00 起计费\n- 密钥只写本机环境变量（`DEEPSEEK_API_KEY`），面板不回显，不上传\n- Search QPS 100、Fetch QPS 25（账户级），超限返回 429\n\n### 已知限制\n- 只读：两个接口都不修改任何外部状态\n- Fetch 受目标站点可用性与访问策略限制，403/404 属正常结果\n- 408 / 429 / 5xx 会重试（最多 2 次），其余 4xx 不重试",
+    "en": "**Web search and fetch via DeepSeek's own search engine**, without relying on model-side tool calls.\n\nShips `deepseek_search` (site:/lang:/after: operators supported) and `deepseek_fetch` (page to Markdown), plus a toolbox panel for the API key, default result count and a connection test. Results carry `authority` (0-4) and `rerank_score` (0-3) so the model can weigh credibility.\n\nCalls `POST /v1/tools/search` and `POST /v1/tools/fetch` directly. Billed per successful request ($0.75 / 1000); failures, empty results and timeouts are free. Key lives only in the local env var `DEEPSEEK_API_KEY`."
+  },
+  "subpackages": [
+    {
+      "id": "deepseek_search",
+      "entry": "packages/deepseek_search.js",
+      "enabled_by_default": true,
+      "display_name": {
+        "zh": "DeepSeek 搜索",
+        "en": "DeepSeek Search"
+      },
+      "description": {
+        "zh": "搜网页：query 支持 site:/lang:/after:/before: 与精确短语；返回 title/url/snippet/summary/date/authority/rerank_score。",
+        "en": "Search the web; returns title, url, snippet, summary, date, authority and rerank score."
+      }
+    },
+    {
+      "id": "deepseek_fetch",
+      "entry": "packages/deepseek_fetch.js",
+      "enabled_by_default": true,
+      "display_name": {
+        "zh": "DeepSeek 抓页",
+        "en": "DeepSeek Fetch"
+      },
+      "description": {
+        "zh": "把指定 URL 抓成 Markdown 正文，返回 title 与 content。",
+        "en": "Fetch a URL and return its content as Markdown."
+      }
+    }
+  ]
+}
