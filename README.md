@@ -1,6 +1,6 @@
 # DeepSeek 搜索（Operit ToolPkg）
 
-用 DeepSeek 自研搜索引擎搜网页、抓正文，不依赖模型自带的 `web_search` tool call。
+用 DeepSeek 自研搜索引擎搜网页、抓正文。给非 v4-pro 模型（如 flash）补上联网能力。
 
 ## 为什么需要它
 
@@ -11,7 +11,22 @@ POST https://api.deepseek.com/v1/tools/search
 POST https://api.deepseek.com/v1/tools/fetch
 ```
 
-它们不是 `/v1/responses` 里的 `web_search` 工具。在 Responses 端点里声明 `tools:[{"type":"web_search"}]`，服务端会静默忽略，不报错也不搜。本插件直接调这两个独立接口。
+DeepSeek 有两种联网方式：
+
+- Responses 端点的 `web_search`：模型在服务端自己搜，结果自动进上下文——**仅 deepseek-v4-pro 支持**，官方文档写明「deepseek-flash 下忽略」；
+- 独立的 `/v1/tools/search` 与 `/v1/tools/fetch`：任何模型都能调，但要客户端显式发起。
+
+所以 flash 等其他模型，开着宿主的「联网搜索」也不会真搜。**本插件补的就是这块**。
+
+## Search 与 Fetch 怎么配合
+
+| | Search | Fetch |
+|---|---|---|
+| 输入 | 关键词 / 查询式 | 一个 URL |
+| 返回 | 多条结果的目录：标题、链接、摘要、权威度 | 打开那一页，返回全文 Markdown |
+| 类比 | 搜索引擎结果页 | 点进某篇文章读全文 |
+
+标准用法是两步：**先 Search 看哪几篇值得读，需要细节时再 Fetch 读全文**。多数问题靠 Search 的 `summary`（600-800 字）就够了。
 
 ## 两个工具
 
@@ -105,4 +120,5 @@ operit_editor:debug_install_toolpkg source_path=/sdcard/x/deepseek_search
 
 ## 更新日志
 
-- **v0.1.0**：首版。搜索 + 抓取两个工具、工具箱面板、离线单测（25 项）、错误码与重试策略。
+- **v0.1.1**（当前）：文案补「补的是哪一块」与「Search / Fetch 怎么配合」；面板加用法说明
+- **v0.1.0**：首版。搜索 + 抓取两个工具、用量记账、工具箱面板、离线单测 30 项、错误码与重试策略。
