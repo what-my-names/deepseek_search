@@ -49,6 +49,7 @@ global.Tools = {
 
 var S = require(path.join(__dirname, "..", "packages", "deepseek_search.js"));
 var F = require(path.join(__dirname, "..", "packages", "deepseek_fetch.js"));
+var R = require(path.join(__dirname, "..", "packages", "deepseek_research.js"));
 
 function reset() { httpCalls.length = 0; httpBehaviors.length = 0; }
 
@@ -155,6 +156,33 @@ function reset() { httpCalls.length = 0; httpBehaviors.length = 0; }
     var u3 = await S.deepseek_search({ query: "c" });
     ok("失败不记账（无 usage 字段）", u3.usage === undefined, JSON.stringify(u3.usage));
     ok("失败后总量不变", FILES[Object.keys(FILES)[0]] && JSON.parse(FILES[Object.keys(FILES)[0]]).calls === 2, Object.keys(FILES).join(","));
+
+    // 11. research：搜 2 条，抓 2 条（1 成功 1 失败）
+    reset(); FILES = {}; envStore = { DEEPSEEK_API_KEY: "sk-test-1234567890" };
+    httpBehaviors = [
+        { statusCode: 200, content: JSON.stringify({ results: [
+            { title: "A", url: "https://e.com/a", authority: 3, rerank_score: 2 },
+            { title: "B", url: "https://e.com/b", authority: 2, rerank_score: 1.6 }
+        ] }) },
+        { statusCode: 200, content: JSON.stringify({ title: "A", content: "# A body" }) },
+        { statusCode: 404, content: "{}" }
+    ];
+    var r11 = await R.deepseek_research({ query: "x", count: 2, top: 2 });
+    ok("research ok 且抓到 1 篇", !!(r11.ok === true && r11.fetched === 1), "fetched=" + r11.fetched);
+    ok("research 记录 1 条失败", !!(Array.isArray(r11.failed) && r11.failed.length === 1), JSON.stringify(r11.failed));
+    ok("research 带正文", !!(r11.results[0] && String(r11.results[0].content).indexOf("body") >= 0), JSON.stringify(r11.results[0] || {}));
+
+    // 12. research top=0 只搜不抓
+    reset();
+    httpBehaviors = [{ statusCode: 200, content: JSON.stringify({ results: [{ title: "A", url: "https://e.com/a" }] }) }];
+    var r12 = await R.deepseek_research({ query: "x", count: 1, top: 0 });
+    ok("research top=0 不抓取", !!(r12.ok === true && r12.fetched === 0 && httpCalls.length === 1), "calls=" + httpCalls.length);
+
+    // 13. research 搜索失败 → 整体失败
+    reset();
+    httpBehaviors = [{ statusCode: 401, content: "{\"error\":{\"message\":\"bad\"}}" }];
+    var r13 = await R.deepseek_research({ query: "x" });
+    ok("research 搜索失败整体失败", !!(r13.ok === false && r13.stage === "search"), JSON.stringify(r13).slice(0, 120));
 
     // 输出
     var pass = 0, fail = 0;
