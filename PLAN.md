@@ -19,7 +19,7 @@
 | 项 | 值 |
 |---|---|
 | toolpkg_id | `com.whatmynames.deepseek_search` |
-| 版本 | `0.1.0` |
+| 版本 | `0.2.0` |
 | 项目路径 | `/sdcard/x/deepseek_search/` |
 | 分类 | Network |
 
@@ -39,6 +39,7 @@
 │   ├── packages/
 │   │   ├── deepseek_search.js
 │   │   ├── deepseek_fetch.js
+│   │   ├── deepseek_research.js   # v0.2.0：搜索 + 抓前 N 篇
 │   │   └── usage.js           # 用量记账
 │   ├── ui/panel.ui.js
 │   ├── tests/test_offline.js
@@ -187,6 +188,39 @@ Content-Type: application/json
 
 ---
 
+### 4.6 `deepseek_research`（v0.2.0）
+
+一次调用完成「搜索 + 读前 N 篇」，减少往返。
+
+| 参数 | 类型 | 必填 | 默认 | 说明 |
+|---|---|---|---|---|
+| `query` | string | 是 | - | 同 `deepseek_search`，支持算子 |
+| `count` | int | 否 | 5 | 搜索条数，1–10 |
+| `top` | int | 否 | 2 | 抓取前几条正文，0–5；0 表示只搜不抓 |
+
+**流程**：先调 `deepseek_search`（count 条）→ 取前 top 条依次 `deepseek_fetch` → 汇总。
+
+**返回**：
+```json
+{ "ok": true, "query": "...", "count": 5, "fetched": 2,
+  "results": [ { "title", "url", "content", "truncated" } ],
+  "failed": [ { "url", "status", "error" } ],
+  "usage": { ... } }
+```
+
+- 单次可能计费 `1 + 成功抓取数` 次；
+- 某条 fetch 失败不影响整体，记入 `failed`；
+- 每条正文上限 8000 字符，超出标 `truncated:true`；
+- search 本身失败则整体失败，不继续抓。
+
+### 4.7 系统提示词注入（v0.2.0）
+
+`main.js` 注册 `registerSystemPromptComposeHook`，在 `after_compose_system_prompt` 时向系统提示词追加一节，提醒模型何时该搜。
+
+- 追加内容：需要实时信息（新闻 / 价格 / 版本号 / 文档细节）时先 `deepseek_search`，需要原文再 `deepseek_fetch`；不要凭记忆编时效性内容。
+- 开关：环境变量 `DEEPSEEK_SEARCH_PROMPT`，`1`/空=开启，`0`=关闭。
+- 注入失败必须静默（返回 `null`），不能影响主对话。
+
 ## 5.4 用量记账
 
 - 模块：`github/packages/usage.js`
@@ -269,18 +303,16 @@ ToolPkg.registerToolboxUiModule({
 
 ## 9. 当前状态
 
-**阶段**：v0.1.0 完成并验收。计划书/代码/单测/装机/真机调用/工具箱面板 全部通过。
+**阶段**：v0.2.0 已发布。新增 `deepseek_research`（真机验证通过）+ 系统提示词注入（已注册，运行期注入待下轮对话确认）。
 
 已完成：
-- PLAN.md / manifest.json / packages×2 / main.js / ui/panel.ui.js / tests（25 项全过）
-- debug_install_toolpkg 装机成功，两个子包 enabled=true
-- 工具箱 UI 模块已注册（id=deepseek_search_panel）
+- v0.2.0：research 组合工具（搜索 + 抓前 N 篇）、系统提示词注入、manifest 三子包
+- 单测 35/35 通过（新增 research 5 项）
+- 真机：research 搜 3 条、抓 1 篇正文成功，usage 累计 8 次 / 0.04 元
+- GitHub v0.2.0 源码 + Release
 
-待完成：
-- ~~写入 DEEPSEEK_API_KEY~~ 已完成
-- ~~真机调用两个工具~~ 已完成（search 3 条 / fetch 2656 字符）
-- ~~打开工具箱面板验证 UI~~ 已确认（用户在工具箱看到面板）
-- ~~README.md~~ 已完成
+待确认：
+- 系统提示词注入是否真的进了请求（看下一轮对话 AI 是否主动调用 `deepseek_search`）
 
 ---
 
@@ -294,3 +326,7 @@ ToolPkg.registerToolboxUiModule({
 | 2026-10-19 21:47 | 0.1.0 | 真机验证通过：deepseek_search 返回 3 条真实结果，deepseek_fetch 抓回 2656 字符；README 完成 |
 | 2026-10-19 21:52 | 0.1.0 | 目录重构：源码迁入 github/，新建 releases/v0.1.0 与 dev/；git 初始化（separate-git-dir） |
 | 2026-10-19 21:58 | 0.1.0 | 新增 usage.js 用量记账；两个工具返回带 usage；面板加「用量统计」卡片；单测扩到 30 项全过 |
+| 2026-10-19 23:00 | 0.1.1 | **修正认知错误**：web_search 不是「DeepSeek 不认」，而是**仅 v4-pro 支持、flash 忽略**；文案补「补的是哪一块」「Search / Fetch 怎么配合」；面板加用法卡片 |
+| 2026-10-20 20:55 | 0.1.1 | GitHub 源码同步（13 文件）+ Release v0.1.1（id 418399001，资产 19406 B） |
+| 2026-10-20 21:20 | 0.2.0 | 新增 `deepseek_research`（搜索 + 抓前 N 篇）+ `registerSystemPromptComposeHook` 提示词注入；单测 35/35；真机 research 通过 |
+| 2026-10-20 21:22 | 0.2.0 | 参考同类项目 dsh-search（439436269-ctrl）补齐组合工具与提示词注入 |
