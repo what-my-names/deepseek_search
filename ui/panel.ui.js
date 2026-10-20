@@ -161,10 +161,18 @@ function Screen(ctx) {
             UI.Text({ text: "DeepSeek 搜索", style: "titleMedium", fontWeight: "bold" })
         ]),
         UI.Text({
-            text: "直接调 DeepSeek 的 Search / Fetch 接口，不依赖模型自带的联网。结果带权威度与重排序分，方便判断可信度。",
+            text: "直接调 DeepSeek 的 Search / Fetch 接口。非 v4-pro 模型（如 flash）打开宿主「联网搜索」不会真搜，这里把这块补上。",
             style: "bodySmall",
             color: C.onSurfaceVariant.copy({ alpha: 0.85 })
         }),
+        UI.Card({ containerColor: C.surfaceVariant.copy({ alpha: 0.3 }), shape: { cornerRadius: 12 }, elevation: 0 }, [
+            UI.Column({ padding: { horizontal: 14, vertical: 12 }, spacing: 6 }, [
+                UI.Text({ text: "两个工具怎么配合", style: "bodyMedium", fontWeight: "semibold" }),
+                UI.Text({ text: "Search → 给关键词，返回多条结果的目录（标题、链接、摘要、权威度），不打开网页。", style: "bodySmall", color: C.onSurfaceVariant.copy({ alpha: 0.85 }) }),
+                UI.Text({ text: "Fetch → 给一个 URL，打开那一页，返回全文 Markdown。", style: "bodySmall", color: C.onSurfaceVariant.copy({ alpha: 0.85 }) }),
+                UI.Text({ text: "标准用法：先 Search 看哪几篇值得读，需要原文细节时再对其中一两篇 Fetch。多数问题靠 summary（600-800 字）就够了。", style: "bodySmall", color: C.onSurfaceVariant.copy({ alpha: 0.7 }) })
+            ])
+        ]),
         UI.Card({ containerColor: C.surfaceVariant.copy({ alpha: 0.45 }), shape: { cornerRadius: 12 }, elevation: 0 }, [
             UI.Column({ padding: { horizontal: 14, vertical: 12 }, spacing: 8 }, [
                 UI.Row({ verticalAlignment: "center", horizontalArrangement: "spaceBetween" }, [
