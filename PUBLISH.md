@@ -122,6 +122,8 @@ git -c credential.helper='!f() { echo username=what-my-names; echo password=$(ca
 - [x] Release v0.1.0 + 上传资产（id 417358293，资产 17689 B）
 - [x] v0.1.1：修正 web_search 适用模型 + 补 Search/Fetch 说明 + 面板用法卡片 + Release（id 418399001，资产 19406 B）
 - [x] v0.2.0：deepseek_research 组合工具 + 系统提示词注入 + 防重 bug 修复 + 内容过滤说明 + Release（id 418436353，资产 23022 B）
+- [x] v0.2.1：补 localization / site_icon + 文案用户视角化
+- [x] v0.2.2：算子参数化 + 客户端限速 + 面板说明 + 文案 3583 字（简介 459 / 详情 3124）+ Release（id 421984648，资产 25827 B）
 - [ ] 市场表单提交（主人在 App 内完成）
 
 ### 仓库与资产地址
