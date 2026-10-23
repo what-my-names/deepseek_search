@@ -54,7 +54,8 @@ async function peek() {
     try { return normalize(JSON.parse(txt)); } catch (e) { return emptyUsage(); }
 }
 
-async function record(kind) {
+async function record(kind, attempt) {
+    attempt = attempt || 0;
     var u = await peek();
     var ts = nowText();
     u.calls += 1;
@@ -66,8 +67,14 @@ async function record(kind) {
     try {
         try { await Tools.Files.mkdir(DIR, true, "android"); } catch (e) { }
         await Tools.Files.write(FILE, JSON.stringify(u, null, 2));
-    } catch (e) { /* 记账失败不影响主流程 */ }
-    return u;
+    } catch (e) { /* 记账失败不影响主流程 */ return u; }
+
+    // 并发保护：写后读回，若被别的调用覆盖则重试
+    var check = await peek();
+    if (check.calls !== u.calls && attempt < 3) {
+        return record(kind, attempt + 1);
+    }
+    return check.calls === u.calls ? u : check;
 }
 
 function summaryText(u) {
