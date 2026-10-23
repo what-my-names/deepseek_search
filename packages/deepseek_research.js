@@ -19,7 +19,12 @@
             "parameters": [
                 { "name": "query", "type": "string", "required": true, "description": { "zh": "搜索词，1-128 字符，支持 site:/lang:/after:/before: 等算子", "en": "Query, 1-128 chars, supports operators" } },
                 { "name": "count", "type": "integer", "required": false, "description": { "zh": "先搜几条，1-10，默认 5", "en": "How many results to search, 1-10, default 5" } },
-                { "name": "top", "type": "integer", "required": false, "description": { "zh": "抓前几篇正文，0-5，默认 2；0 表示只搜不抓", "en": "How many pages to fetch, 0-5, default 2; 0 means search only" } }
+                { "name": "top", "type": "integer", "required": false, "description": { "zh": "抓前几篇正文，0-5，默认 2；0 表示只搜不抓", "en": "How many pages to fetch, 0-5, default 2; 0 means search only" } },
+                { "name": "site", "type": "string", "required": false, "description": { "zh": "只搜指定站点，等价于 site:xxx", "en": "Restrict to this site" } },
+                { "name": "exclude_site", "type": "string", "required": false, "description": { "zh": "排除指定站点，等价于 -site:xxx", "en": "Exclude this site" } },
+                { "name": "lang", "type": "string", "required": false, "description": { "zh": "语言过滤，如 zh、en", "en": "Language filter" } },
+                { "name": "after", "type": "string", "required": false, "description": { "zh": "只返回此日期之后的内容", "en": "Only after this date" } },
+                { "name": "before", "type": "string", "required": false, "description": { "zh": "只返回此日期之前的内容", "en": "Only before this date" } }
             ]
         }
     ]
@@ -52,7 +57,15 @@ async function deepseek_research(params) {
     var count = clampInt(params.count, 5, 1, 10);
     var top = clampInt(params.top, 2, 0, 5);
 
-    var sr = await searchMod.deepseek_search({ query: query, count: count });
+    var sr = await searchMod.deepseek_search({
+        query: query,
+        count: count,
+        site: params.site,
+        exclude_site: params.exclude_site,
+        lang: params.lang,
+        after: params.after,
+        before: params.before
+    });
     if (!sr || !sr.ok) {
         return {
             ok: false,
