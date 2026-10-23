@@ -85,6 +85,7 @@ function reset() { httpCalls.length = 0; httpBehaviors.length = 0; }
     ok("请求头带 Bearer", String((httpCalls[0] || {}).headers && httpCalls[0].headers.Authorization).indexOf("Bearer sk-test") === 0, JSON.stringify(httpCalls[0] && httpCalls[0].headers));
     ok("body 是对象且字段正确", httpCalls[0].body.query === "x" && httpCalls[0].body.count === 1, JSON.stringify(httpCalls[0].body));
     ok("site_icon 被透出", r2.results[0].site_icon === "i", String(r2.results[0].site_icon));
+    ok("成功返回含 success:true", r2.success === true && r2.message === "OK", JSON.stringify({ s: r2.success, m: r2.message }));
 
     // 3b. localization 进请求体
     reset();
@@ -112,6 +113,7 @@ function reset() { httpCalls.length = 0; httpBehaviors.length = 0; }
     ok("401 不重试", httpCalls.length === 1, "httpCalls=" + httpCalls.length);
     ok("401 返回原始信息", String(r3.error).indexOf("bad key") >= 0, String(r3.error));
     ok("401 retryable=false", r3.retryable === false, String(r3.retryable));
+    ok("失败返回含 success:false + error", r3.success === false && !!r3.error, JSON.stringify({ s: r3.success, e: String(r3.error).slice(0, 30) }));
 
     // 5. 429 重试两次后成功
     reset();
