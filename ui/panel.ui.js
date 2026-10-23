@@ -170,7 +170,8 @@ function Screen(ctx) {
                 UI.Text({ text: "两个工具怎么配合", style: "bodyMedium", fontWeight: "semibold" }),
                 UI.Text({ text: "Search → 给关键词，返回多条结果的目录（标题、链接、摘要、权威度），不打开网页。", style: "bodySmall", color: C.onSurfaceVariant.copy({ alpha: 0.85 }) }),
                 UI.Text({ text: "Fetch → 给一个 URL，打开那一页，返回全文 Markdown。", style: "bodySmall", color: C.onSurfaceVariant.copy({ alpha: 0.85 }) }),
-                UI.Text({ text: "标准用法：先 Search 看哪几篇值得读，需要原文细节时再对其中一两篇 Fetch。多数问题靠 summary（600-800 字）就够了。", style: "bodySmall", color: C.onSurfaceVariant.copy({ alpha: 0.7 }) })
+                UI.Text({ text: "标准用法：先 Search 看哪几篇值得读，需要原文细节时再对其中一两篇 Fetch。多数问题靠 summary（600-800 字）就够了。", style: "bodySmall", color: C.onSurfaceVariant.copy({ alpha: 0.7 }) }),
+                UI.Text({ text: "筛选用算子：可直接写进 query（site: / -site: / lang: / after: / before:），也可用同名参数传给工具，插件会自动拼好。", style: "bodySmall", color: C.onSurfaceVariant.copy({ alpha: 0.7 }) })
             ])
         ]),
         UI.Card({ containerColor: C.surfaceVariant.copy({ alpha: 0.45 }), shape: { cornerRadius: 12 }, elevation: 0 }, [
