@@ -84,6 +84,23 @@ function reset() { httpCalls.length = 0; httpBehaviors.length = 0; }
     ok("保留 authority/rerank_score", r2.results[0].authority === 3 && r2.results[0].rerank_score === 2.4, "");
     ok("请求头带 Bearer", String((httpCalls[0] || {}).headers && httpCalls[0].headers.Authorization).indexOf("Bearer sk-test") === 0, JSON.stringify(httpCalls[0] && httpCalls[0].headers));
     ok("body 是对象且字段正确", httpCalls[0].body.query === "x" && httpCalls[0].body.count === 1, JSON.stringify(httpCalls[0].body));
+    ok("site_icon 被透出", r2.results[0].site_icon === "i", String(r2.results[0].site_icon));
+
+    // 3b. localization 进请求体
+    reset();
+    httpBehaviors = [{ statusCode: 200, content: JSON.stringify({ results: [] }) }];
+    await S.deepseek_search({ query: "x", localization: "1.2.3.4" });
+    ok("localization 进 body", !!((httpCalls[0] || {}).body && httpCalls[0].body.localization === "1.2.3.4"), JSON.stringify((httpCalls[0] || {}).body));
+
+    // 3c. 算子参数拼进 query
+    reset();
+    httpBehaviors = [{ statusCode: 200, content: JSON.stringify({ results: [] }) }];
+    await S.deepseek_search({ query: "x", site: "github.com", lang: "zh", after: "2025" });
+    var bq = ((httpCalls[0] || {}).body || {}).query || "";
+    ok("算子拼进 query", bq.indexOf("site:github.com") >= 0 && bq.indexOf("lang:zh") >= 0 && bq.indexOf("after:2025") >= 0, bq);
+
+    // 3d. 拼接后超 128 报错
+    await expectThrow("拼接超长报错", function () { return S.deepseek_search({ query: "a".repeat(120), site: "b".repeat(20) }); }, "128");
 
     // 4. 401 不重试
     reset();
