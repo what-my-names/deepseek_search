@@ -69,6 +69,8 @@ async function deepseek_research(params) {
     if (!sr || !sr.ok) {
         return {
             ok: false,
+            success: false,
+            message: (sr && sr.error) || "搜索失败",
             stage: "search",
             status: (sr && sr.status) || 0,
             error: (sr && sr.error) || "搜索失败",
@@ -112,6 +114,8 @@ async function deepseek_research(params) {
 
     return {
         ok: true,
+        success: true,
+        message: "OK",
         query: query,
         count: (sr.results || []).length,
         fetched: results.length,
