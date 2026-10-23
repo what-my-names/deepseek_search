@@ -117,16 +117,6 @@ async function postJson(url, body) {
     return { ok: false, status: 0, error: "网络请求失败：" + String(lastErr || "unknown"), retryable: true };
 }
 
-var lastCallAt = 0;
-var MIN_GAP_MS = 20;
-
-async function throttle() {
-    var now = Date.now();
-    var wait = MIN_GAP_MS - (now - lastCallAt);
-    if (wait > 0) await sleep(wait);
-    lastCallAt = Date.now();
-}
-
 function buildQuery(base, params) {
     var q = base;
     function add(op, val) {
@@ -183,14 +173,14 @@ async function deepseek_search(params) {
     if (params.ori_question) body.ori_question = String(params.ori_question).slice(0, 128);
     if (params.localization) body.localization = String(params.localization).slice(0, 64);
 
-    await throttle();
-
     var r = await postJson(ENDPOINT, body);
     if (!r.ok) {
         return {
             ok: false,
-            status: r.status,
+            success: false,
+            message: r.error,
             error: r.error,
+            status: r.status,
             retryable: !!r.retryable,
             hint: hintOf(r.status)
         };
@@ -205,6 +195,8 @@ async function deepseek_search(params) {
     var usage = billable ? await usageMod.record("search") : await usageMod.peek();
     return {
         ok: true,
+        success: true,
+        message: "OK",
         query: query,
         count: list.length,
         billable: billable,
