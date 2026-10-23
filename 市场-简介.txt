@@ -1,11 +1,14 @@
-【DeepSeek 搜索】让 AI 真的能上网搜
+【DeepSeek 搜索】给 flash 等模型补上联网能力
 
-直接调 DeepSeek 自研搜索引擎，两个工具：deepseek_search 搜网页、deepseek_fetch 抓正文。
-支持 site: / lang: / after: / before: / 精确短语 / 排除词，结果自带权威度（0-4）与重排序分（0-3）。
+DeepSeek 只有 v4-pro 能用服务端联网搜索，flash 打开官方「联网搜索」也不会真搜。
+本插件直接调独立的 Search / Fetch 接口，任何模型都能用。
 
-不用宿主那个「联网开关」——那个对 DeepSeek 不生效。
+两个工具：
+· deepseek_search —— 给关键词，返回多条结果的目录（标题/链接/摘要/权威度）
+· deepseek_fetch  —— 给一个 URL，打开那一页，返回全文 Markdown
+标准用法：先搜看哪几篇值得读，需要细节再抓。
 
-装完工具箱里能看到面板：填 key、调默认条数、测连通、看累计调用次数与预估花费。
-失败、空结果、超时不计费。
+支持 site: / lang: / after: / before: / 精确短语 / 排除词。
+工具箱面板：填 key、调默认条数、测连通、看累计调用次数与预估花费。
 
-2026-11-01 前通过 Harness / Claude Code / Codex 的服务端调用免费；之后每 1000 次成功请求 5 元。
+失败、空结果、超时不计费；2026-11-01 前服务端调用免费，之后每 1000 次成功请求 5 元。
