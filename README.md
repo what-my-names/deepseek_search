@@ -18,6 +18,21 @@ DeepSeek 有两种联网方式：
 
 所以 flash 等其他模型，开着宿主的「联网搜索」也不会真搜。**本插件补的就是这块**。
 
+## 怎么用（示例）
+
+```
+deepseek_search    query="llama.cpp 安装" count=5
+deepseek_search    query="DeepSeek 价格" site:github.com lang:zh
+deepseek_fetch     url="https://example.com/a"
+deepseek_research  query="DeepSeek V4 上下文长度" count=5 top=2
+```
+
+参数范围：
+
+- search：`query`（≤128）· `count`（1-50，默认 10）· `need_content`（默认 false）· `ori_question` · `localization` · **`site` / `exclude_site` / `lang` / `after` / `before`（算子参数，插件自动拼进 query）**
+- research：`query` · `count`（1-10，默认 5）· `top`（0-5，默认 2，0 = 只搜不抓）· 同样支持上面 5 个算子参数
+- fetch：`url`（≤8192，http/https，不能带账号密码）
+
 ## Search 与 Fetch 怎么配合
 
 | | Search | Fetch |
