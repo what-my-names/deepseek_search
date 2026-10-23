@@ -123,8 +123,10 @@ async function deepseek_fetch(params) {
     if (!r.ok) {
         return {
             ok: false,
-            status: r.status,
+            success: false,
+            message: r.error,
             error: r.error,
+            status: r.status,
             retryable: !!r.retryable,
             hint: hintOf(r.status)
         };
@@ -132,13 +134,13 @@ async function deepseek_fetch(params) {
 
     var parsed = null;
     try { parsed = JSON.parse(r.content); } catch (e) {
-        return { ok: false, status: 200, error: "响应不是合法 JSON：" + String(r.content).slice(0, 200), retryable: false };
+        return { ok: false, success: false, message: "响应不是合法 JSON", status: 200, error: "响应不是合法 JSON：" + String(r.content).slice(0, 200), retryable: false };
     }
 
     var title = String((parsed && parsed.title) || "");
     var content = String((parsed && parsed.content) || "");
     if (!content) {
-        return { ok: false, status: 200, error: "响应中没有正文内容（该页面可能无可提取的 Markdown）", retryable: false, hint: hintOf(404) };
+        return { ok: false, success: false, message: "响应中没有正文内容", status: 200, error: "响应中没有正文内容（该页面可能无可提取的 Markdown）", retryable: false, hint: hintOf(404) };
     }
 
     var truncated = false;
@@ -150,6 +152,8 @@ async function deepseek_fetch(params) {
     var usage = await usageMod.record("fetch");
     return {
         ok: true,
+        success: true,
+        message: "OK",
         url: url,
         title: title,
         length: content.length,
