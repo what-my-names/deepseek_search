@@ -298,12 +298,13 @@ ToolPkg.registerToolboxUiModule({
 | 3 | `Tools.Net.http` 默认超时，`need_content=true` 大页面是否截断 | 抓一个长页面测 | 待验证 |
 | 4 | 面板 UI 首次部署可能需重启 Operit 才刷新 | 重启后复查 | 待验证 |
 | 5 | `/sdcard` 直接 `git init` 后 `git add` 报 `unable to write file .git/objects/...: No such file or directory` | 已改用 `--separate-git-dir=/root/git/deepseek_search`，已解决 | **已验证** |
+| 6 | GitHub Contents API 推中文文件名报 `UnicodeEncodeError: ascii codec` | 路径要 `urllib.parse.quote()` 编码，已验证 | **已验证** |
 
 ---
 
 ## 9. 当前状态
 
-**阶段**：v0.2.0 已发布。新增 `deepseek_research`（真机验证通过）+ 系统提示词注入（已注册，运行期注入待下轮对话确认）。
+**阶段**：v0.2.2 已发布。算子参数化 + 客户端限速 + 官方 schema 全覆盖 + 市场文案 3583 字（简介 459 + 详情 3124）。
 
 已完成：
 - v0.2.0：research 组合工具（搜索 + 抓前 N 篇）、系统提示词注入、manifest 三子包
@@ -330,3 +331,7 @@ ToolPkg.registerToolboxUiModule({
 | 2026-10-20 20:55 | 0.1.1 | GitHub 源码同步（13 文件）+ Release v0.1.1（id 418399001，资产 19406 B） |
 | 2026-10-20 21:20 | 0.2.0 | 新增 `deepseek_research`（搜索 + 抓前 N 篇）+ `registerSystemPromptComposeHook` 提示词注入；单测 35/35；真机 research 通过 |
 | 2026-10-20 21:22 | 0.2.0 | 参考同类项目 dsh-search（439436269-ctrl）补齐组合工具与提示词注入 |
+| 2026-10-23 22:58 | 0.2.1 | 补 `localization` 参数与 `site_icon` 字段（对齐官方 schema）；文案改用户视角 |
+| 2026-10-23 23:02 | 0.2.2 | 算子参数化（site / exclude_site / lang / after / before）+ 客户端限速 + 面板说明 |
+| 2026-10-23 23:08 | 0.2.2 | GitHub 全量推送 14 文件 + Release v0.2.2（id 421984648，资产 25827 B） |
+| 2026-10-23 23:10 | 0.2.2 | 文案终版：详情 3124 字、简介 459 字、合计 3583 |
