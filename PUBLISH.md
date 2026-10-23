@@ -121,6 +121,7 @@ git -c credential.helper='!f() { echo username=what-my-names; echo password=$(ca
 - [x] GitHub 仓库创建 + 推送（2026-10-19 21:56，commit ed4675a）
 - [x] Release v0.1.0 + 上传资产（id 417358293，资产 17689 B）
 - [x] v0.1.1：修正 web_search 适用模型 + 补 Search/Fetch 说明 + 面板用法卡片 + Release（id 418399001，资产 19406 B）
+- [x] v0.2.0：deepseek_research 组合工具 + 系统提示词注入 + 防重 bug 修复 + 内容过滤说明 + Release（id 418436353，资产 23022 B）
 - [ ] 市场表单提交（主人在 App 内完成）
 
 ### 仓库与资产地址
