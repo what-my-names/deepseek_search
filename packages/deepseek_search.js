@@ -20,7 +20,13 @@
                 { "name": "query", "type": "string", "required": true, "description": { "zh": "搜索词，1-128 字符，支持 site:/lang:/after:/before: 与引号精确匹配", "en": "Query, 1-128 chars, supports operators" } },
                 { "name": "count", "type": "integer", "required": false, "description": { "zh": "返回条数，1-50，默认 10", "en": "Number of results, 1-50, default 10" } },
                 { "name": "need_content", "type": "boolean", "required": false, "description": { "zh": "是否返回网页正文（体积大，默认 false）", "en": "Whether to include page content, default false" } },
-                { "name": "ori_question", "type": "string", "required": false, "description": { "zh": "触发本次搜索的用户原问题，帮助理解意图", "en": "Original user question that triggered this search" } }
+                { "name": "localization", "type": "string", "required": false, "description": { "zh": "IP 地址，用于本地化搜索结果（可选，一般不用填）", "en": "Optional IP address used to localize results" } },
+                { "name": "ori_question", "type": "string", "required": false, "description": { "zh": "触发本次搜索的用户原问题，帮助理解意图", "en": "Original user question that triggered this search" } },
+                { "name": "site", "type": "string", "required": false, "description": { "zh": "只搜指定站点，等价于在 query 里加 site:xxx（多个用逗号）", "en": "Restrict to this site, same as site: operator" } },
+                { "name": "exclude_site", "type": "string", "required": false, "description": { "zh": "排除指定站点，等价于 -site:xxx", "en": "Exclude this site, same as -site: operator" } },
+                { "name": "lang", "type": "string", "required": false, "description": { "zh": "语言过滤，如 zh、en，或 zh,en", "en": "Language filter, e.g. zh, en, or zh,en" } },
+                { "name": "after", "type": "string", "required": false, "description": { "zh": "只返回此日期之后的内容，如 2025 或 2025-01-01", "en": "Only results published after this date" } },
+                { "name": "before", "type": "string", "required": false, "description": { "zh": "只返回此日期之前的内容，如 2026 或 2026-06-01", "en": "Only results published before this date" } }
             ]
         }
     ]
@@ -111,6 +117,33 @@ async function postJson(url, body) {
     return { ok: false, status: 0, error: "网络请求失败：" + String(lastErr || "unknown"), retryable: true };
 }
 
+var lastCallAt = 0;
+var MIN_GAP_MS = 20;
+
+async function throttle() {
+    var now = Date.now();
+    var wait = MIN_GAP_MS - (now - lastCallAt);
+    if (wait > 0) await sleep(wait);
+    lastCallAt = Date.now();
+}
+
+function buildQuery(base, params) {
+    var q = base;
+    function add(op, val) {
+        if (val === null || val === undefined || val === "") return;
+        q += " " + op + String(val).trim();
+    }
+    add("site:", params.site);
+    if (params.exclude_site) q += " -site:" + String(params.exclude_site).trim();
+    add("lang:", params.lang);
+    add("after:", params.after);
+    add("before:", params.before);
+    if (q.length > 128) {
+        throw new Error("拼接算子后 query 超过 128 字符（当前 " + q.length + "），请缩短 query 或减少算子");
+    }
+    return q;
+}
+
 function trimResults(list, withContent) {
     var out = [];
     for (var i = 0; i < list.length; i++) {
@@ -123,7 +156,8 @@ function trimResults(list, withContent) {
             date: r.date || null,
             authority: (r.authority === undefined ? null : r.authority),
             rerank_score: (r.rerank_score === undefined ? null : r.rerank_score),
-            site_name: r.site_name || null
+            site_name: r.site_name || null,
+            site_icon: r.site_icon || null
         };
         if (withContent) {
             var c = String(r.content || "");
@@ -136,9 +170,10 @@ function trimResults(list, withContent) {
 
 async function deepseek_search(params) {
     params = params || {};
-    var query = params.query === null || params.query === undefined ? "" : String(params.query).trim();
-    if (!query) throw new Error("query 不能为空");
-    if (query.length > 128) throw new Error("query 不能超过 128 字符（当前 " + query.length + "）");
+    var raw = params.query === null || params.query === undefined ? "" : String(params.query).trim();
+    if (!raw) throw new Error("query 不能为空");
+    if (raw.length > 128) throw new Error("query 不能超过 128 字符（当前 " + raw.length + "）");
+    var query = buildQuery(raw, params);
 
     var count = toInt(params.count, 10);
     if (count < 1 || count > 50) throw new Error("count 必须在 1-50 之间（当前 " + count + "）");
@@ -146,6 +181,9 @@ async function deepseek_search(params) {
     var needContent = params.need_content === true;
     var body = { query: query, count: count, need_content: needContent };
     if (params.ori_question) body.ori_question = String(params.ori_question).slice(0, 128);
+    if (params.localization) body.localization = String(params.localization).slice(0, 64);
+
+    await throttle();
 
     var r = await postJson(ENDPOINT, body);
     if (!r.ok) {
